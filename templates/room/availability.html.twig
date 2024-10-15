@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Disponibilités de la salle {{ room.name }}{% endblock %}
+
+{% block body %}
+    <h1>Disponibilités de la salle {{ room.name }}</h1>
+
+    <ul>
+    {% for date in availableDates %}
+        <li>{{ date|date('d/m/Y') }}</li>
+    {% else %}
+        <li>Aucune disponibilité dans les 30 prochains jours.</li>
+    {% endfor %}
+    </ul>
+
+    <a href="{{ path('room_index') }}">Retour à la liste des salles</a>
+{% endblock %}

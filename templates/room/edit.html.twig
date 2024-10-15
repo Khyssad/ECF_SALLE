@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier la salle {{ room.name }}{% endblock %}
+
+{% block body %}
+    <h1>Modifier la salle</h1>
+
+    {{ form_start(form) }}
+        {{ form_widget(form) }}
+        <button class="btn btn-primary">{{ button_label|default('Enregistrer les modifications') }}</button>
+    {{ form_end(form) }}
+
+    <a href="{{ path('room_index') }}" class="btn btn-secondary">Retour à la liste des salles</a>
+
+    <a href="{{ path('room_show', {'id': room.id}) }}" class="btn btn-info">Voir les détails</a>
+
+    {{ include('room/_delete_form.html.twig') }}
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails de la salle {{ room.name }}{% endblock %}
+
+{% block body %}
+    <h1>Détails de la salle</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>ID</th>
+                <td>{{ room.id }}</td>
+            </tr>
+            <tr>
+                <th>Nom</th>
+                <td>{{ room.name }}</td>
+            </tr>
+            <tr>
+                <th>Capacité</th>
+                <td>{{ room.capacity }}</td>
+            </tr>
+            <tr>
+                <th>Équipements</th>
+                <td>
+                    <ul>
+                    {% for equipment in room.equipments %}
+                        <li>{{ equipment }}</li>
+                    {% else %}
+                        <li>Aucun équipement enregistré</li>
+                    {% endfor %}
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <th>Critères d'ergonomie</th>
+                <td>
+                    <ul>
+                    {% for ergonomic in room.ergonomics %}
+                        <li>{{ ergonomic }}</li>
+                    {% else %}
+                        <li>Aucun critère d'ergonomie enregistré</li>
+                    {% endfor %}
+                    </ul>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('room_availability', {'id': room.id}) }}" class="btn btn-primary">Voir les disponibilités</a>
+
+    <a href="{{ path('room_index') }}" class="btn btn-secondary">Retour à la liste des salles</a>
+
+    <a href="{{ path('room_edit', {'id': room.id}) }}" class="btn btn-warning">Modifier</a>
+
+    {{ include('room/_delete_form.html.twig') }}
+{% endblock %}
