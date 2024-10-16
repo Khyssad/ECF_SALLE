@@ -9,8 +9,6 @@ use Faker\Factory;
 
 class ReservationFixtures extends Fixture
 {
-    public const REFERENCE_NAME = 'reservation_reference';
-
     public function load(ObjectManager $manager): void
     {
         $faker = Factory::create();
@@ -18,14 +16,12 @@ class ReservationFixtures extends Fixture
         // Create 50 reservations
         for ($i = 0; $i < 50; $i++) {
             $reservation = new Reservation();
-            $startDate = new \DateTimeImmutable('-3 months');
-            $endDate = $startDate->modify('+'. $faker->numberBetween(1, 3).'days');
             $reservation
-                ->setStartDate($startDate)
-                ->setEndDate($endDate)
+                ->setStartDate(new \DateTimeImmutable('-30 days'))
+                ->setEndDate(new \DateTimeImmutable('now'))
                 ->setStatus($faker->randomElement([Reservation::STATUS_PENDING, Reservation::STATUS_CONFIRMED, Reservation::STATUS_CANCELLED]))
-                ->setUsers($this->getReference('user_reference'))
-                ->setRoom($this->getReference('room_reference'));
+                ->setUsers($this->getReference('user_'.rand(1, 100)))
+                ->setRoom($this->getReference('room_'.rand(1, 10)));
 
             $manager->persist($reservation);
         }
