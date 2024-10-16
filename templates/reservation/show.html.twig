@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails de la réservation{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1>Détails de la réservation</h1>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Réservation #{{ reservation.id }}</h5>
+                <p class="card-text">
+                    <strong>Date de début:</strong> {{ reservation.startDate ? reservation.startDate|date('Y-m-d H:i:s') : '' }}<br>
+                    <strong>Date de fin:</strong> {{ reservation.endDate ? reservation.endDate|date('Y-m-d H:i:s') : '' }}<br>
+                    <strong>Statut:</strong> 
+                    <span class="badge {{ reservation.status == 'confirmed' ? 'bg-success' : (reservation.status == 'pending' ? 'bg-warning text-dark' : 'bg-secondary') }}">
+                        {{ reservation.status == 'confirmed' ? 'Confirmée' : (reservation.status == 'pending' ? 'Pré-réservation' : reservation.status) }}
+                    </span><br>
+                    <strong>Utilisateur:</strong> {{ reservation.user.email }}<br>
+                    <strong>Salle:</strong> {{ reservation.room.name }}
+                </p>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <a href="{{ path('app_reservation_index') }}" class="btn btn-secondary">Retour à la liste</a>
+            <a href="{{ path('app_reservation_edit', {'id': reservation.id}) }}" class="btn btn-warning">Modifier</a>
+            {{ include('reservation/_delete_form.html.twig') }}
+        </div>
+    </div>
+{% endblock %}

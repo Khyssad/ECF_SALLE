@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des salles{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1>Liste des salles</h1>
+
+        {{ form_start(search_form) }}
+        <div class="row mb-3">
+            <div class="col-md-3">{{ form_row(search_form.name) }}</div>
+            <div class="col-md-3">{{ form_row(search_form.capacity) }}</div>
+            <div class="col-md-3">{{ form_row(search_form.equipments) }}</div>
+            <div class="col-md-3">{{ form_row(search_form.ergonomics) }}</div>
+        </div>
+        <button type="submit" class="btn btn-primary mb-3">Rechercher</button>
+        {{ form_end(search_form) }}
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Capacité</th>
+                    <th>Équipements</th>
+                    <th>Ergonomie</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for room in rooms %}
+                <tr>
+                    <td>{{ room.name }}</td>
+                    <td>{{ room.capacity }}</td>
+                    <td>{{ room.equipments|join(', ') }}</td>
+                    <td>{{ room.ergonomics|join(', ') }}</td>
+                    <td>
+                        <a href="{{ path('app_room_show', {'id': room.id}) }}" class="btn btn-sm btn-info">Voir</a>
+                        <a href="{{ path('app_room_edit', {'id': room.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5">Aucune salle trouvée</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <a href="{{ path('app_room_new') }}" class="btn btn-success">Créer une nouvelle salle</a>
+    </div>
+{% endblock %}

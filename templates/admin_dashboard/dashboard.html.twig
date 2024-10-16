@@ -1,0 +1,35 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block page_title %}Tableau de bord administrateur{% endblock %}
+
+{% block main %}
+    <div class="row">
+        <div class="col-lg-4 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Réservations en attente</h5>
+                    <p class="card-text display-4">{{ pending_reservations_count }}</p>
+                    <a href="{{ path('admin', { crudAction: 'index', crudControllerFqcn: 'App\\Controller\\ReservationCrudController' }) }}" class="btn btn-primary">Voir les réservations</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total des salles</h5>
+                    <p class="card-text display-4">{{ total_rooms }}</p>
+                    <a href="{{ path('admin', { crudAction: 'index', crudControllerFqcn: 'App\\Controller\\RoomCrudController' }) }}" class="btn btn-primary">Gérer les salles</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total des utilisateurs</h5>
+                    <p class="card-text display-4">{{ total_users }}</p>
+                    <a href="{{ path('admin', { crudAction: 'index', crudControllerFqcn: 'App\\Controller\\UserCrudController' }) }}" class="btn btn-primary">Gérer les utilisateurs</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

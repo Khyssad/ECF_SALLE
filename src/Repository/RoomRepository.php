@@ -6,9 +6,6 @@ use App\Entity\Room;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-/**
- * @extends ServiceEntityRepository<Room>
- */
 class RoomRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -16,28 +13,30 @@ class RoomRepository extends ServiceEntityRepository
         parent::__construct($registry, Room::class);
     }
 
-//    /**
-//     * @return Room[] Returns an array of Room objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('r')
-//            ->andWhere('r.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('r.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function searchRooms(array $criteria)
+    {
+        $qb = $this->createQueryBuilder('r');
 
-//    public function findOneBySomeField($value): ?Room
-//    {
-//        return $this->createQueryBuilder('r')
-//            ->andWhere('r.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        if (!empty($criteria['name'])) {
+            $qb->andWhere('r.name LIKE :name')
+                ->setParameter('name', '%' . $criteria['name'] . '%');
+        }
+
+        if (!empty($criteria['capacity'])) {
+            $qb->andWhere('r.capacity >= :capacity')
+                ->setParameter('capacity', $criteria['capacity']);
+        }
+
+        if (!empty($criteria['equipments'])) {
+            $qb->andWhere('r.equipments LIKE :equipments')
+                ->setParameter('equipments', '%' . implode('%', $criteria['equipments']) . '%');
+        }
+
+        if (!empty($criteria['ergonomics'])) {
+            $qb->andWhere('r.ergonomics LIKE :ergonomics')
+                ->setParameter('ergonomics', '%' . implode('%', $criteria['ergonomics']) . '%');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

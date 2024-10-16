@@ -1,45 +1,46 @@
 <?php
 
-namespace App\Form;
+namespace App\Repository;
 
 use App\Entity\Room;
-use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\IntegerType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\CollectionType;
-use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\OptionsResolver\OptionsResolver;
-class RoomType extends AbstractType
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+
+class RoomRepository extends ServiceEntityRepository
 {
-    public function buildForm(FormBuilderInterface $builder, array $options): void
+    public function __construct(ManagerRegistry $registry)
     {
-        $builder
-            ->add('name', TextType::class, [
-                'label' => 'Nom de la salle'
-            ])
-            ->add('capacity', IntegerType::class, [
-                'label' => 'Capacité'
-            ])
-            ->add('equipments', CollectionType::class, [
-                'entry_type' => TextType::class,
-                'allow_add' => true,
-                'allow_delete' => true,
-                'label' => 'Équipements',
-                'by_reference' => false,
-            ])
-            ->add('ergonomics', CollectionType::class, [
-                'entry_type' => TextType::class,
-                'allow_add' => true,
-                'allow_delete' => true,
-                'label' => 'Critères d\'ergonomie',
-                'by_reference' => false,
-            ]);
+        parent::__construct($registry, Room::class);
     }
 
-    public function configureOptions(OptionsResolver $resolver): void
+    public function searchRooms(array $criteria)
     {
-        $resolver->setDefaults([
-            'data_class' => Room::class,
-        ]);
+        $qb = $this->createQueryBuilder('r');
+
+        if (!empty($criteria['name'])) {
+            $qb->andWhere('r.name LIKE :name')
+                ->setParameter('name', '%' . $criteria['name'] . '%');
+        }
+
+        if (!empty($criteria['capacity'])) {
+            $qb->andWhere('r.capacity >= :capacity')
+                ->setParameter('capacity', $criteria['capacity']);
+        }
+
+        if (!empty($criteria['equipments'])) {
+            foreach ($criteria['equipments'] as $equipment) {
+                $qb->andWhere('JSON_CONTAINS(r.equipments, :equipment) = 1')
+                   ->setParameter('equipment', json_encode($equipment));
+            }
+        }
+
+        if (!empty($criteria['ergonomics'])) {
+            foreach ($criteria['ergonomics'] as $ergonomic) {
+                $qb->andWhere('JSON_CONTAINS(r.ergonomics, :ergonomic) = 1')
+                   ->setParameter('ergonomic', json_encode($ergonomic));
+            }
+        }
+
+        return $qb->getQuery()->getResult();
     }
 }

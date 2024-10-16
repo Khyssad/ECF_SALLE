@@ -8,6 +8,10 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: ReservationRepository::class)]
 class Reservation
 {
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_CONFIRMED = 'confirmed';
+    public const STATUS_CANCELLED = 'cancelled';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -20,7 +24,7 @@ class Reservation
     private ?\DateTimeImmutable $endDate = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $status = null;
+    private ?string $status = self::STATUS_PENDING;
 
     #[ORM\ManyToOne(inversedBy: 'reservations')]
     #[ORM\JoinColumn(nullable: false)]
@@ -66,6 +70,9 @@ class Reservation
 
     public function setStatus(string $status): static
     {
+        if (!in_array($status, [self::STATUS_PENDING, self::STATUS_CONFIRMED, self::STATUS_CANCELLED])) {
+            throw new \InvalidArgumentException("Invalid status");
+        }
         $this->status = $status;
 
         return $this;
@@ -92,6 +99,33 @@ class Reservation
     {
         $this->room = $room;
 
+        return $this;
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
+    }
+
+    public function isConfirmed(): bool
+    {
+        return $this->status === self::STATUS_CONFIRMED;
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === self::STATUS_CANCELLED;
+    }
+
+    public function confirm(): self
+    {
+        $this->setStatus(self::STATUS_CONFIRMED);
+        return $this;
+    }
+
+    public function cancel(): self
+    {
+        $this->setStatus(self::STATUS_CANCELLED);
         return $this;
     }
 }
