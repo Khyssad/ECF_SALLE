@@ -19,16 +19,17 @@ class ReservationFixtures extends Fixture
         for ($i = 0; $i < 50; $i++) {
             $reservation = new Reservation();
             $reservation
-                ->setStartDate(new \DateTimeImmutable('-6 months'))
-                ->setEndDate(new \DateTimeImmutable('-5 months'))
-                ->setStatus('CONFIRMED')
-                ->setUsers($this->getReference('user_reference')) // Updated reference
-                ->setRoom($this->getReference('room_reference')); // Updated reference
-
-            $manager->persist($reservation);
+                ->setFirstName($faker->firstName)
+                ->setLastName($faker->lastName)
+                ->setEmail($faker->email)
+                ->setPhoneNumber($faker->phoneNumber)
+                ->setReservationDate(new \DateTimeImmutable('-1 year', 'now'))
+                ->setReservationTime($faker->time('H:i'))
+                ->setNumberOfGuests($faker->numberBetween(1, 10))
+                ->setSpecialRequests($faker->sentence)
+                ->setCreatedAt(new \DateTimeImmutable('-1 year', 'now'))
+                ->setUpdatedAt(new \DateTimeImmutable('-1 year', 'now'));
         }
-
-        $this->addReference(self::REFERENCE_NAME, $reservation);
 
         $manager->flush();
     }
