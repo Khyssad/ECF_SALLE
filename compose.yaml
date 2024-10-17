@@ -4,10 +4,13 @@ services:
       context: .  # Le contexte de construction est le répertoire actuel
       dockerfile: Dockerfile  # Assurez-vous que le fichier s'appelle Dockerfile
     ports:
-      - "8080:80"
+      - "8000:80" # Redirection du port 8000 du conteneur vers le port 8000 de votre machine locale
     volumes:
       - .:/var/www/html
-
+    command: php -S 127.0.0.1:8000 -t public
+    environment:
+      DATABASE_URL: "mysql://root:supersaiyan@127.0.0.1:3306/db_shy?serverVersion=8.0.39&charset=utf8mb4" # Remplacez les valeurs par vos propres informations de base de données
+      
     depends_on:
       - database
     networks:
@@ -16,10 +19,10 @@ services:
   database:
     image: mysql:8.0.39
     environment:
-      MYSQL_DB: ${MYSQL_DB:-db_shy}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DB:-db_shy}
       MYSQL_USER: ${MYSQL_USER:-root}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-supersaiyan}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-supersaiyan}
     healthcheck:
       test: ["CMD", "mysql_isready", "-d", "${MYSQL_DB:-db_shy}", "-U", "${MYSQL_USER:-root}"]
       timeout: 5s
@@ -36,7 +39,6 @@ services:
       - "1025:1025"
       - "8025:8025"
     
-
 networks:
   app-network:
     driver: bridge
