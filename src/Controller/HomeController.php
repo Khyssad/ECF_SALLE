@@ -11,8 +11,12 @@ class HomeController extends AbstractController
     #[Route('/home', name: 'app_home')]
     public function index(): Response
     {
+        // Vérifier si l'utilisateur a le role admin
+        $isAdmin = $this->isGranted('ROLE_ADMIN');
+
+        // Sinon, renvoyer la vue avec la variable isAdmin
         return $this->render('home/index.html.twig', [
-            'controller_name' => 'HomeController',
+            'is_granted' => $isAdmin,
         ]);
     }
 }
