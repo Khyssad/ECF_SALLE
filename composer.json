@@ -49,6 +49,10 @@
         "twig/twig": "^2.12|^3.0"
     },
     "config": {
+        "preferred-install": "dist",
+        "optimize-autoloader": true,
+        "classmap-authoritative": true,
+        "cache-files-ttl": 0,
         "allow-plugins": {
             "php-http/discovery": true,
             "symfony/flex": true,
@@ -77,17 +81,11 @@
         "symfony/polyfill-php82": "*"
     },
     "scripts": {
-        "auto-scripts": {
-            "cache:clear": "symfony-cmd",
-            "assets:install %PUBLIC_DIR%": "symfony-cmd",
-            "importmap:install": "symfony-cmd"
-        },
+        "symfony-cmd": "symfony console some:command",
         "post-install-cmd": [
-            "@auto-scripts"
+            "symfony-cmd"
         ],
-        "post-update-cmd": [
-            "@auto-scripts"
-        ]
+        "post-update-cmd": []
     },
     "conflict": {
         "symfony/symfony": "*"
