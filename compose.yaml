@@ -1,25 +1,45 @@
-
 services:
-###> doctrine/doctrine-bundle ###
+  web:
+    build:
+      context: .  # Le contexte de construction est le répertoire actuel
+      dockerfile: Dockerfile  # Assurez-vous que le fichier s'appelle Dockerfile
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+
+    depends_on:
+      - database
+    networks:
+      - app-network
+
   database:
-    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    image: mysql:8.0.39
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-app}
-      # You should definitely change the password in production
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
-      POSTGRES_USER: ${POSTGRES_USER:-app}
+      MYSQL_DB: ${MYSQL_DB:-db_shy}
+      MYSQL_USER: ${MYSQL_USER:-root}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-supersaiyan}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-supersaiyan}
     healthcheck:
-      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
+      test: ["CMD", "mysql_isready", "-d", "${MYSQL_DB:-db_shy}", "-U", "${MYSQL_USER:-root}"]
       timeout: 5s
       retries: 5
       start_period: 60s
     volumes:
-      - database_data:/var/lib/postgresql/data:rw
-      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
-      # - ./docker/db/data:/var/lib/postgresql/data:rw
-###< doctrine/doctrine-bundle ###
+      - database_data:/var/lib/mysql/data:rw
+    networks:
+      - app-network
+
+  mailer:
+    image: axllent/mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
-###> doctrine/doctrine-bundle ###
   database_data:
-###< doctrine/doctrine-bundle ###

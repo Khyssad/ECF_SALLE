@@ -1,21 +1,25 @@
 <?php
 
-namespace App\Repository;
+namespace App\Form;
 
 use App\Entity\Room;
+use App\Repository\RoomRepository;
+use Symfony\Component\Form\AbstractType;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-class RoomRepository extends ServiceEntityRepository
+class RoomType extends AbstractType
 {
+    private $entityManager;
+
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Room::class);
+        $this->entityManager = $registry->getManager();
     }
 
     public function searchRooms(array $criteria)
     {
-        $qb = $this->createQueryBuilder('r');
+        $qb = $this->entityManager->getRepository(Room::class)->createQueryBuilder('r');
 
         if (!empty($criteria['name'])) {
             $qb->andWhere('r.name LIKE :name')
