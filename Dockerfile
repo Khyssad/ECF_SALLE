@@ -1,23 +1,25 @@
-# Utiliser une image de PHP avec Apache
+# Utiliser l'image de PHP avec Apache
 FROM php:8.3-apache
 
-# Installer les extensions requises
+# Installer les extensions nécessaires
 RUN docker-php-ext-install pdo pdo_mysql
 
-# Copier les fichiers du projet dans le conteneur
+# Copier le code source de l'application
 COPY . /var/www/html/
 
+# Configuration de l'Apache
+COPY ./apache-config.conf /etc/apache2/sites-available/000-default.conf
+
+# Activer le module rewrite d'Apache
+RUN a2enmod rewrite
+
 # Définir le répertoire de travail
-WORKDIR /var/www/html
+WORKDIR /var/www/html/
 
-# Installer Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Installer les dépendances Symfony
+# Installer les dépendances de Composer (si nécessaire)
+COPY composer.json composer.lock ./
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 RUN composer install
 
 # Exposer le port 80
 EXPOSE 80
-
-# Démarrer le serveur Symfony
-CMD ["php", "bin/console", "serve:start", "127.0.0.1:80"]
