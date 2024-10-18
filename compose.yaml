@@ -8,6 +8,11 @@ services:
       - "8000:8000" # Redirection du port 8000 du conteneur vers le port 8000 de votre machine locale 
     depends_on:
       - database # Attendre que la base de données soit prête avant de démarrer l'application
+    environment:
+      - MYSQL_HOST=database
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=supersaiyan
+      - MYSQL_DB=db_shy
 
   database:
     image: mysql:8.0
@@ -16,6 +21,8 @@ services:
       MYSQL_DATABASE: ${MYSQL_DB:-db_shy}
     volumes:
       - database_data:/var/lib/mysql/data:rw
+    ports:
+      - "3308:3306"
 
   mailer:
     image: axllent/mailpit
