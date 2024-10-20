@@ -18,8 +18,8 @@ class Room
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column]
-    private ?int $capacity = null;
+    #[ORM\Column(type: 'integer')]
+    private int $capacity = 0;
 
     #[ORM\Column(type: 'json')]
     private array $equipments = [];
@@ -52,27 +52,25 @@ class Room
         return $this;
     }
 
-    public function getCapacity(): ?int
+	public function getCapacity(): int
     {
         return $this->capacity;
     }
 
-    public function setCapacity(int $capacity): static
+    public function setCapacity(int $capacity): self
     {
         $this->capacity = $capacity;
-
         return $this;
     }
 
-    public function getEquipments(): array
+	public function getEquipments(): array
     {
         return $this->equipments;
     }
 
-    public function setEquipments(array $equipments): static
+    public function setEquipments(array $equipments): self
     {
         $this->equipments = $equipments;
-
         return $this;
     }
 
@@ -81,13 +79,11 @@ class Room
         return $this->ergonomics;
     }
 
-    public function setErgonomics(array $ergonomics): static
+    public function setErgonomics(array $ergonomics): self
     {
         $this->ergonomics = $ergonomics;
-
         return $this;
     }
-
     /**
      * @return Collection<int, Reservation>
      */

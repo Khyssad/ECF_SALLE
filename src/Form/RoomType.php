@@ -3,48 +3,55 @@
 namespace App\Form;
 
 use App\Entity\Room;
-use App\Repository\RoomRepository;
 use Symfony\Component\Form\AbstractType;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class RoomType extends AbstractType
 {
-    private $entityManager;
-
-    public function __construct(ManagerRegistry $registry)
+    public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $this->entityManager = $registry->getManager();
+        $builder
+            ->add('name', TextType::class, [
+                'label' => 'Nom de la salle'
+            ])
+            ->add('capacity', IntegerType::class, [
+                'label' => 'Capacité'
+            ])
+            ->add('equipments', ChoiceType::class, [
+                'choices' => [
+                    'Projecteur' => 'projector',
+                    'Tableau blanc' => 'whiteboard',
+                    'Ordinateur' => 'computer',
+                    'Système de visioconférence' => 'video_conference',
+                    'Écran tactile' => 'touch_screen'
+                ],
+                'multiple' => true,
+                'expanded' => true,
+                'label' => 'Équipements'
+            ])
+            ->add('ergonomics', ChoiceType::class, [
+                'choices' => [
+                    'Luminosité naturelle' => 'natural_light',
+                    'Accessibilité PMR' => 'wheelchair_accessible',
+                    'Climatisation' => 'air_conditioning',
+                    'Insonorisation' => 'soundproof',
+                    'Mobilier ergonomique' => 'ergonomic_furniture'
+                ],
+                'multiple' => true,
+                'expanded' => true,
+                'label' => 'Critères ergonomiques'
+            ])
+        ;
     }
 
-    public function searchRooms(array $criteria)
+    public function configureOptions(OptionsResolver $resolver): void
     {
-        $qb = $this->entityManager->getRepository(Room::class)->createQueryBuilder('r');
-
-        if (!empty($criteria['name'])) {
-            $qb->andWhere('r.name LIKE :name')
-                ->setParameter('name', '%' . $criteria['name'] . '%');
-        }
-
-        if (!empty($criteria['capacity'])) {
-            $qb->andWhere('r.capacity >= :capacity')
-                ->setParameter('capacity', $criteria['capacity']);
-        }
-
-        if (!empty($criteria['equipments'])) {
-            foreach ($criteria['equipments'] as $equipment) {
-                $qb->andWhere('JSON_CONTAINS(r.equipments, :equipment) = 1')
-                   ->setParameter('equipment', json_encode($equipment));
-            }
-        }
-
-        if (!empty($criteria['ergonomics'])) {
-            foreach ($criteria['ergonomics'] as $ergonomic) {
-                $qb->andWhere('JSON_CONTAINS(r.ergonomics, :ergonomic) = 1')
-                   ->setParameter('ergonomic', json_encode($ergonomic));
-            }
-        }
-
-        return $qb->getQuery()->getResult();
+        $resolver->setDefaults([
+            'data_class' => Room::class,
+        ]);
     }
 }

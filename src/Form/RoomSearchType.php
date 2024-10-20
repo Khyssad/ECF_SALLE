@@ -3,55 +3,75 @@
 namespace App\Form;
 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\FormEvents;
+use Symfony\Component\Form\FormEvent;
 
 class RoomSearchType extends AbstractType
 {
-    public function buildForm(FormBuilderInterface $builder, array $options): void
+    public function buildForm(FormBuilderInterface $builder, array $options)
     {
+        dump("Building RoomSearchType form");
+
         $builder
             ->add('name', TextType::class, [
                 'required' => false,
-                'label' => 'Nom de la salle',
+                'label' => 'Nom de la salle'
             ])
             ->add('capacity', IntegerType::class, [
                 'required' => false,
                 'label' => 'Capacité minimale',
+                'attr' => [
+                    'min' => 0
+                ]
             ])
             ->add('equipments', ChoiceType::class, [
                 'choices' => [
                     'Projecteur' => 'projector',
                     'Tableau blanc' => 'whiteboard',
                     'Ordinateur' => 'computer',
-                    // Ajoutez d'autres équipements selon vos besoins
+                    'Système de visioconférence' => 'video_conference',
+                    'Écran tactile' => 'touch_screen'
                 ],
                 'multiple' => true,
                 'expanded' => true,
                 'required' => false,
-                'label' => 'Équipements',
+                'label' => 'Équipements'
             ])
             ->add('ergonomics', ChoiceType::class, [
                 'choices' => [
                     'Luminosité naturelle' => 'natural_light',
                     'Accessibilité PMR' => 'wheelchair_accessible',
                     'Climatisation' => 'air_conditioning',
-                    // Ajoutez d'autres critères ergonomiques
+                    'Insonorisation' => 'soundproof',
+                    'Mobilier ergonomique' => 'ergonomic_furniture'
                 ],
                 'multiple' => true,
                 'expanded' => true,
                 'required' => false,
-                'label' => 'Critères ergonomiques',
+                'label' => 'Critères ergonomiques'
             ]);
+
+        $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) {
+            $data = $event->getData();
+            dump("PRE_SUBMIT data:", $data);
+        });
+
+        dump("Form builder configuration:", $builder);
     }
 
-    public function configureOptions(OptionsResolver $resolver): void
+    public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            // Configure your form options here
+            'data_class' => null,
+            'csrf_protection' => true,
+            'method' => 'POST',
         ]);
+
+        dump("Form options:", $resolver);
     }
 }

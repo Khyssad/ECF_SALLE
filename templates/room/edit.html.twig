@@ -3,13 +3,14 @@
 {% block title %}Modifier la salle{% endblock %}
 
 {% block body %}
-    <div class="container mt-4">
-        <h1>Modifier la salle</h1>
+    <h1>Modifier la salle</h1>
 
-        {{ include('room/_form.html.twig', {'button_label': 'Mettre à jour'}) }}
+    {{ form_start(form) }}
+    {{ form_widget(form) }}
+    <button class="btn btn-primary">{{ button_label|default('Enregistrer') }}</button>
+    {{ form_end(form) }}
 
-        <a href="{{ path('app_room_index') }}" class="btn btn-secondary mt-3">Retour à la liste</a>
+    <a href="{{ path('app_room_index') }}">Retour à la liste</a>
 
-        {{ include('room/_delete_form.html.twig') }}
-    </div>
+    {{ include('room/_delete_form.html.twig') }}
 {% endblock %}

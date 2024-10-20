@@ -6,44 +6,47 @@
     <div class="container mt-4">
         <h1>Liste des réservations</h1>
 
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>Date de début</th>
-                    <th>Date de fin</th>
-                    <th>Statut</th>
-                    <th>Utilisateur</th>
-                    <th>Salle</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for reservation in reservations %}
-                <tr class="{{ reservation.status == 'confirmed' ? 'table-success' : (reservation.status == 'pending' ? 'table-warning' : '') }}">
-                    <td>{{ reservation.id }}</td>
-                    <td>{{ reservation.startDate ? reservation.startDate|date('Y-m-d H:i:s') : '' }}</td>
-                    <td>{{ reservation.endDate ? reservation.endDate|date('Y-m-d H:i:s') : '' }}</td>
-                    <td>
-                        <span class="badge {{ reservation.status == 'confirmed' ? 'bg-success' : (reservation.status == 'pending' ? 'bg-warning text-dark' : 'bg-secondary') }}">
-                            {{ reservation.status == 'confirmed' ? 'Confirmée' : (reservation.status == 'pending' ? 'Pré-réservation' : reservation.status) }}
-                        </span>
-                    </td>
-                    <td>{{ reservation.user.email }}</td>
-                    <td>{{ reservation.room.name }}</td>
-                    <td>
-                        <a href="{{ path('app_reservation_show', {'id': reservation.id}) }}" class="btn btn-sm btn-info">Voir</a>
-                        <a href="{{ path('app_reservation_edit', {'id': reservation.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
-                    </td>
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="7">Aucune réservation trouvée</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+        <div id="search-form-container">
+            {{ form_start(form, {'attr': {'id': 'search-form'}}) }}
+            {{ form_row(form.startDate) }}
+            {{ form_row(form.endDate) }}
+            {{ form_row(form.status) }}
+            <button type="submit" class="btn btn-primary">Rechercher</button>
+            {{ form_end(form) }}
+        </div>
 
-        <a href="{{ path('app_reservation_new') }}" class="btn btn-primary">Créer une nouvelle réservation</a>
+        <div id="results-container" class="mt-4">
+            {% include 'reservation/_results.html.twig' with {'reservations': reservations} %}
+        </div>
+
+        <a href="{{ path('app_reservation_new') }}" class="btn btn-success mt-3">Nouvelle réservation</a>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('search-form');
+            const resultsContainer = document.getElementById('results-container');
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const formData = new FormData(form);
+
+                fetch('{{ path('app_reservation_index') }}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(response => response.text())
+                  .then(html => {
+                      resultsContainer.innerHTML = html;
+                  }).catch(error => {
+                      console.error('Error:', error);
+                  });
+            });
+        });
+    </script>
 {% endblock %}

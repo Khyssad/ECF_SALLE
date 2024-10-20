@@ -3,23 +3,42 @@
 namespace App\Controller;
 
 use App\Entity\Reservation;
-use App\Entity\Room;
 use App\Form\ReservationType;
+use App\Form\ReservationSearchType;
 use App\Repository\ReservationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/reservation')]
-final class ReservationController extends AbstractController
+class ReservationController extends AbstractController
 {
-    #[Route(name: 'app_reservation_index', methods: ['GET'])]
-    public function index(ReservationRepository $reservationRepository): Response
+    #[Route('/', name: 'app_reservation_index', methods: ['GET', 'POST'])]
+    public function index(Request $request, ReservationRepository $reservationRepository): Response
     {
+        $form = $this->createForm(ReservationSearchType::class);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $searchCriteria = $form->getData();
+            $reservations = $reservationRepository->searchReservations($searchCriteria);
+        } else {
+            $reservations = $reservationRepository->findAll();
+        }
+
+        if ($request->isXmlHttpRequest()) {
+            return $this->render('reservation/_results.html.twig', [
+                'reservations' => $reservations,
+                'hideTitle' => true,
+            ]);
+        }
+
         return $this->render('reservation/index.html.twig', [
-            'reservations' => $reservationRepository->findAll(),
+            'form' => $form->createView(),
+            'reservations' => $reservations,
         ]);
     }
 
@@ -27,13 +46,12 @@ final class ReservationController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $reservation = new Reservation();
-        $reservation->setUsers($this->getUser());
-        
         $form = $this->createForm(ReservationType::class, $reservation);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $reservation->setStatus(Reservation::STATUS_PENDING);
+            $reservation->setUsers($this->getUser());
             $entityManager->persist($reservation);
             $entityManager->flush();
 
@@ -43,43 +61,7 @@ final class ReservationController extends AbstractController
 
         return $this->render('reservation/new.html.twig', [
             'reservation' => $reservation,
-            'form' => $form,
-        ]);
-    }
-
-    #[Route('/pre-book/{id}', name: 'app_reservation_pre_book', methods: ['GET', 'POST'])]
-    public function preBook(Request $request, Room $room, EntityManagerInterface $entityManager, ReservationRepository $reservationRepository): Response
-    {
-        $reservation = new Reservation();
-        $reservation->setRoom($room);
-        $reservation->setUsers($this->getUser());
-
-        $form = $this->createForm(ReservationType::class, $reservation);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $conflictingReservations = $reservationRepository->findConflictingReservations(
-                $room,
-                $reservation->getStartDate(),
-                $reservation->getEndDate()
-            );
-
-            if (count($conflictingReservations) > 0) {
-                $this->addFlash('error', 'La salle n\'est pas disponible pour la période sélectionnée.');
-            } else {
-                $reservation->setStatus(Reservation::STATUS_PENDING);
-                $entityManager->persist($reservation);
-                $entityManager->flush();
-
-                $this->addFlash('success', 'Votre pré-réservation a été enregistrée et est en attente de confirmation.');
-                return $this->redirectToRoute('app_reservation_index', [], Response::HTTP_SEE_OTHER);
-            }
-        }
-
-        return $this->render('reservation/pre_book.html.twig', [
-            'reservation' => $reservation,
-            'form' => $form,
-            'room' => $room,
+            'form' => $form->createView(),
         ]);
     }
 
@@ -94,40 +76,46 @@ final class ReservationController extends AbstractController
     #[Route('/{id}/edit', name: 'app_reservation_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Reservation $reservation, EntityManagerInterface $entityManager): Response
     {
+        $this->denyAccessUnlessGranted('EDIT', $reservation);
+
         $form = $this->createForm(ReservationType::class, $reservation);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
 
+            $this->addFlash('success', 'La réservation a été modifiée avec succès.');
             return $this->redirectToRoute('app_reservation_index', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('reservation/edit.html.twig', [
             'reservation' => $reservation,
-            'form' => $form,
+            'form' => $form->createView(),
         ]);
     }
 
-    #[Route('/{id}/cancel', name: 'app_reservation_cancel', methods: ['POST'])]
-    public function cancel(Request $request, Reservation $reservation, EntityManagerInterface $entityManager): Response
+    #[Route('/{id}', name: 'app_reservation_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function delete(Request $request, Reservation $reservation, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('cancel'.$reservation->getId(), $request->getPayload()->getString('_token'))) {
-            $reservation->cancel();
+        if ($this->isCsrfTokenValid('delete'.$reservation->getId(), $request->request->get('_token'))) {
+            $entityManager->remove($reservation);
             $entityManager->flush();
-
-            $this->addFlash('success', 'La réservation a été annulée avec succès.');
+            $this->addFlash('success', 'La réservation a été supprimée avec succès.');
         }
 
         return $this->redirectToRoute('app_reservation_index', [], Response::HTTP_SEE_OTHER);
     }
 
-    #[Route('/{id}', name: 'app_reservation_delete', methods: ['POST'])]
-    public function delete(Request $request, Reservation $reservation, EntityManagerInterface $entityManager): Response
+    #[Route('/{id}/cancel', name: 'app_reservation_cancel', methods: ['POST'])]
+    public function cancel(Request $request, Reservation $reservation, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$reservation->getId(), $request->getPayload()->getString('_token'))) {
-            $entityManager->remove($reservation);
+        $this->denyAccessUnlessGranted('CANCEL', $reservation);
+
+        if ($this->isCsrfTokenValid('cancel'.$reservation->getId(), $request->request->get('_token'))) {
+            $reservation->setStatus(Reservation::STATUS_CANCELLED);
             $entityManager->flush();
+            $this->addFlash('success', 'La réservation a été annulée avec succès.');
         }
 
         return $this->redirectToRoute('app_reservation_index', [], Response::HTTP_SEE_OTHER);
