@@ -13,28 +13,6 @@ class ReservationRepository extends ServiceEntityRepository
         parent::__construct($registry, Reservation::class);
     }
 
-    public function searchReservations(array $criteria)
-    {
-        $qb = $this->createQueryBuilder('r');
-
-        if (!empty($criteria['startDate'])) {
-            $qb->andWhere('r.startDate >= :startDate')
-               ->setParameter('startDate', $criteria['startDate']);
-        }
-
-        if (!empty($criteria['endDate'])) {
-            $qb->andWhere('r.endDate <= :endDate')
-               ->setParameter('endDate', $criteria['endDate']);
-        }
-
-        if (!empty($criteria['status'])) {
-            $qb->andWhere('r.status = :status')
-               ->setParameter('status', $criteria['status']);
-        }
-
-        return $qb->getQuery()->getResult();
-    }
-
     public function findPendingReservations()
     {
         $fiveDaysFromNow = new \DateTime('+5 days');
@@ -42,9 +20,19 @@ class ReservationRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('r')
             ->andWhere('r.status = :status')
             ->andWhere('r.startDate <= :fiveDaysFromNow')
-            ->setParameter('status', Reservation::STATUS_PENDING)
+            ->setParameter('status', Reservation::STATUS_PRE_RESERVED)
             ->setParameter('fiveDaysFromNow', $fiveDaysFromNow)
             ->getQuery()
             ->getResult();
+    }
+
+    public function countByStatus(string $status): int
+    {
+        return $this->createQueryBuilder('r')
+            ->select('COUNT(r.id)')
+            ->andWhere('r.status = :status')
+            ->setParameter('status', $status)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

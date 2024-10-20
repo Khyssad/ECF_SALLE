@@ -3,75 +3,54 @@
 namespace App\Form;
 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Form\FormEvents;
-use Symfony\Component\Form\FormEvent;
 
 class RoomSearchType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        dump("Building RoomSearchType form");
-
         $builder
             ->add('name', TextType::class, [
                 'required' => false,
-                'label' => 'Nom de la salle'
             ])
-            ->add('capacity', IntegerType::class, [
+            ->add('minCapacity', IntegerType::class, [
                 'required' => false,
-                'label' => 'Capacité minimale',
-                'attr' => [
-                    'min' => 0
-                ]
             ])
-            ->add('equipments', ChoiceType::class, [
+            ->add('equipment', ChoiceType::class, [
                 'choices' => [
-                    'Projecteur' => 'projector',
-                    'Tableau blanc' => 'whiteboard',
-                    'Ordinateur' => 'computer',
-                    'Système de visioconférence' => 'video_conference',
-                    'Écran tactile' => 'touch_screen'
+                    'Projector' => 'projector',
+                    'Whiteboard' => 'whiteboard',
+                    'Computer' => 'computer',
+                    'Video conferencing' => 'video_conferencing',
+                    'Touch screen' => 'touch_screen',
                 ],
                 'multiple' => true,
                 'expanded' => true,
                 'required' => false,
-                'label' => 'Équipements'
             ])
             ->add('ergonomics', ChoiceType::class, [
                 'choices' => [
-                    'Luminosité naturelle' => 'natural_light',
-                    'Accessibilité PMR' => 'wheelchair_accessible',
-                    'Climatisation' => 'air_conditioning',
-                    'Insonorisation' => 'soundproof',
-                    'Mobilier ergonomique' => 'ergonomic_furniture'
+                    'Natural light' => 'natural_light',
+                    'Wheelchair accessible' => 'wheelchair_accessible',
+                    'Air conditioning' => 'air_conditioning',
+                    'Soundproof' => 'soundproof',
+                    'Ergonomic furniture' => 'ergonomic_furniture',
                 ],
                 'multiple' => true,
                 'expanded' => true,
                 'required' => false,
-                'label' => 'Critères ergonomiques'
             ]);
-
-        $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) {
-            $data = $event->getData();
-            dump("PRE_SUBMIT data:", $data);
-        });
-
-        dump("Form builder configuration:", $builder);
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'data_class' => null,
-            'csrf_protection' => true,
-            'method' => 'POST',
+            'method' => 'GET',
+            'csrf_protection' => false,
         ]);
-
-        dump("Form options:", $resolver);
     }
 }

@@ -25,7 +25,7 @@ class AdminReservationController extends AbstractController
     #[Route('/{id}/confirm', name: 'admin_confirm_reservation', methods: ['POST'])]
     public function confirmReservation(Reservation $reservation, EntityManagerInterface $entityManager): Response
     {
-        $reservation->confirm();
+        $reservation->setStatus('confirmed');
         $entityManager->flush();
 
         $this->addFlash('success', 'La réservation a été confirmée.');
@@ -36,7 +36,7 @@ class AdminReservationController extends AbstractController
     #[Route('/{id}/reject', name: 'admin_reject_reservation', methods: ['POST'])]
     public function rejectReservation(Reservation $reservation, EntityManagerInterface $entityManager): Response
     {
-        $reservation->cancel(); // Nous utilisons cancel() comme rejet
+        $reservation->setStatus('rejected'); // Changed from cancel() to setStatus('rejected')
         $entityManager->flush();
 
         $this->addFlash('success', 'La réservation a été rejetée.');

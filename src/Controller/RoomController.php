@@ -5,61 +5,50 @@ namespace App\Controller;
 use App\Entity\Room;
 use App\Form\RoomType;
 use App\Form\RoomSearchType;
-use Psr\Log\LoggerInterface;
 use App\Repository\RoomRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 #[Route('/room')]
 class RoomController extends AbstractController
 {
-    private $logger;
-
-    public function __construct(LoggerInterface $logger)
+    #[Route('/', name: 'app_room_index', methods: ['GET'])]
+    public function index(RoomRepository $roomRepository): Response
     {
-        $this->logger = $logger;
+        return $this->render('room/index.html.twig', [
+            'rooms' => $roomRepository->findAll(),
+        ]);
     }
 
-    #[Route('/', name: 'app_room_index', methods: ['GET', 'POST'])]
-    public function index(Request $request, RoomRepository $roomRepository): Response
+    #[Route('/search', name: 'app_room_search', methods: ['GET'])]
+    public function search(Request $request, RoomRepository $roomRepository): Response
     {
         $form = $this->createForm(RoomSearchType::class);
         $form->handleRequest($request);
 
+        $rooms = [];
         if ($form->isSubmitted() && $form->isValid()) {
-            $searchCriteria = $form->getData();
-            $this->logger->debug('Search criteria received', ['criteria' => $searchCriteria]);
-            $rooms = $roomRepository->searchRooms($searchCriteria);
-        } else {
-            $rooms = $roomRepository->findAll();
-        }
-
-        if ($request->isXmlHttpRequest()) {
-            return $this->render('room/_results.html.twig', [
-                'rooms' => $rooms,
-                'hideTitle' => true,
-            ]);
+            $criteria = $form->getData();
+            $rooms = $roomRepository->searchRooms($criteria);
         }
 
         return $this->render('room/search.html.twig', [
             'form' => $form->createView(),
-            'rooms' => $rooms ?? null,
+            'rooms' => $rooms,
         ]);
     }
 
     #[Route('/new', name: 'app_room_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, RoomRepository $roomRepository): Response
     {
         $room = new Room();
         $form = $this->createForm(RoomType::class, $room);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($room);
-            $entityManager->flush();
+            $roomRepository->save($room, true);
 
             return $this->redirectToRoute('app_room_index', [], Response::HTTP_SEE_OTHER);
         }
@@ -79,13 +68,13 @@ class RoomController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_room_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Room $room, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, Room $room, RoomRepository $roomRepository): Response
     {
         $form = $this->createForm(RoomType::class, $room);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
+            $roomRepository->save($room, true);
 
             return $this->redirectToRoute('app_room_index', [], Response::HTTP_SEE_OTHER);
         }
@@ -97,11 +86,10 @@ class RoomController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_room_delete', methods: ['POST'])]
-    public function delete(Request $request, Room $room, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, Room $room, RoomRepository $roomRepository): Response
     {
         if ($this->isCsrfTokenValid('delete'.$room->getId(), $request->request->get('_token'))) {
-            $entityManager->remove($room);
-            $entityManager->flush();
+            $roomRepository->remove($room, true);
         }
 
         return $this->redirectToRoute('app_room_index', [], Response::HTTP_SEE_OTHER);

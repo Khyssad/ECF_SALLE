@@ -1,52 +1,37 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Liste des réservations{% endblock %}
+{% block title %}My Reservations{% endblock %}
 
 {% block body %}
-    <div class="container mt-4">
-        <h1>Liste des réservations</h1>
+    <h1 class="text-3xl font-bold mb-6">My Reservations</h1>
 
-        <div id="search-form-container">
-            {{ form_start(form, {'attr': {'id': 'search-form'}}) }}
-            {{ form_row(form.startDate) }}
-            {{ form_row(form.endDate) }}
-            {{ form_row(form.status) }}
-            <button type="submit" class="btn btn-primary">Rechercher</button>
-            {{ form_end(form) }}
-        </div>
+    <table class="min-w-full bg-white">
+        <thead>
+            <tr>
+                <th class="py-2 px-4 border-b">Room</th>
+                <th class="py-2 px-4 border-b">Start Date</th>
+                <th class="py-2 px-4 border-b">End Date</th>
+                <th class="py-2 px-4 border-b">Status</th>
+                <th class="py-2 px-4 border-b">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for reservation in reservations %}
+            <tr>
+                <td class="py-2 px-4 border-b">{{ reservation.room.name }}</td>
+                <td class="py-2 px-4 border-b">{{ reservation.startDate|date('Y-m-d H:i') }}</td>
+                <td class="py-2 px-4 border-b">{{ reservation.endDate|date('Y-m-d H:i') }}</td>
+                <td class="py-2 px-4 border-b">{{ reservation.status }}</td>
+                <td class="py-2 px-4 border-b">
+                    <a href="{{ path('app_reservation_show', {'id': reservation.id}) }}" class="text-blue-600 hover:underline">View</a>
+                    {% if reservation.status == 'pre_reserved' %}
+                        <a href="{{ path('app_reservation_edit', {'id': reservation.id}) }}" class="text-blue-600 hover:underline ml-2">Edit</a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 
-        <div id="results-container" class="mt-4">
-            {% include 'reservation/_results.html.twig' with {'reservations': reservations} %}
-        </div>
-
-        <a href="{{ path('app_reservation_new') }}" class="btn btn-success mt-3">Nouvelle réservation</a>
-    </div>
-{% endblock %}
-
-{% block javascripts %}
-    {{ parent() }}
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const form = document.getElementById('search-form');
-            const resultsContainer = document.getElementById('results-container');
-
-            form.addEventListener('submit', function (e) {
-                e.preventDefault();
-                const formData = new FormData(form);
-
-                fetch('{{ path('app_reservation_index') }}', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                }).then(response => response.text())
-                  .then(html => {
-                      resultsContainer.innerHTML = html;
-                  }).catch(error => {
-                      console.error('Error:', error);
-                  });
-            });
-        });
-    </script>
+    <a href="{{ path('app_reservation_new') }}" class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded">Create new reservation</a>
 {% endblock %}
