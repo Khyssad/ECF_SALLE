@@ -21,13 +21,13 @@ class Room
     #[ORM\Column]
     private ?int $capacity = null;
 
-    #[ORM\Column(type: 'json')]
-    private array $equipments = [];
+    #[ORM\Column]
+    private array $equipment = [];
 
-    #[ORM\Column(type: 'json')]
+    #[ORM\Column]
     private array $ergonomics = [];
 
-    #[ORM\OneToMany(mappedBy: 'room', targetEntity: Reservation::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'room', targetEntity: Reservation::class)]
     private Collection $reservations;
 
     public function __construct()
@@ -45,7 +45,7 @@ class Room
         return $this->name;
     }
 
-    public function setName(string $name): static
+    public function setName(string $name): self
     {
         $this->name = $name;
 
@@ -57,21 +57,21 @@ class Room
         return $this->capacity;
     }
 
-    public function setCapacity(int $capacity): static
+    public function setCapacity(int $capacity): self
     {
         $this->capacity = $capacity;
 
         return $this;
     }
 
-    public function getEquipments(): array
+    public function getEquipment(): array
     {
-        return $this->equipments;
+        return $this->equipment;
     }
 
-    public function setEquipments(array $equipments): static
+    public function setEquipment(array $equipment): self
     {
-        $this->equipments = $equipments;
+        $this->equipment = $equipment;
 
         return $this;
     }
@@ -81,7 +81,7 @@ class Room
         return $this->ergonomics;
     }
 
-    public function setErgonomics(array $ergonomics): static
+    public function setErgonomics(array $ergonomics): self
     {
         $this->ergonomics = $ergonomics;
 
@@ -96,7 +96,7 @@ class Room
         return $this->reservations;
     }
 
-    public function addReservation(Reservation $reservation): static
+    public function addReservation(Reservation $reservation): self
     {
         if (!$this->reservations->contains($reservation)) {
             $this->reservations->add($reservation);
@@ -106,7 +106,7 @@ class Room
         return $this;
     }
 
-    public function removeReservation(Reservation $reservation): static
+    public function removeReservation(Reservation $reservation): self
     {
         if ($this->reservations->removeElement($reservation)) {
             // set the owning side to null (unless already changed)

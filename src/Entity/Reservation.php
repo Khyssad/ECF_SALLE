@@ -8,6 +8,10 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: ReservationRepository::class)]
 class Reservation
 {
+    public const STATUS_PRE_RESERVED = 'pre_reserved';
+    public const STATUS_CONFIRMED = 'confirmed';
+    public const STATUS_CANCELLED = 'cancelled';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -19,12 +23,12 @@ class Reservation
     #[ORM\Column]
     private ?\DateTimeImmutable $endDate = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $status = null;
+    #[ORM\Column(length: 20)]
+    private ?string $status = self::STATUS_PRE_RESERVED;
 
     #[ORM\ManyToOne(inversedBy: 'reservations')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?User $users = null;
+    private ?User $user = null;
 
     #[ORM\ManyToOne(inversedBy: 'reservations')]
     #[ORM\JoinColumn(nullable: false)]
@@ -40,10 +44,9 @@ class Reservation
         return $this->startDate;
     }
 
-    public function setStartDate(\DateTimeImmutable $startDate): static
+    public function setStartDate(\DateTimeImmutable $startDate): self
     {
         $this->startDate = $startDate;
-
         return $this;
     }
 
@@ -52,10 +55,9 @@ class Reservation
         return $this->endDate;
     }
 
-    public function setEndDate(\DateTimeImmutable $endDate): static
+    public function setEndDate(\DateTimeImmutable $endDate): self
     {
         $this->endDate = $endDate;
-
         return $this;
     }
 
@@ -64,22 +66,23 @@ class Reservation
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(string $status): self
     {
+        if (!in_array($status, [self::STATUS_PRE_RESERVED, self::STATUS_CONFIRMED, self::STATUS_CANCELLED])) {
+            throw new \InvalidArgumentException("Invalid status");
+        }
         $this->status = $status;
-
         return $this;
     }
 
-    public function getUsers(): ?User
+    public function getUser(): ?User
     {
-        return $this->users;
+        return $this->user;
     }
 
-    public function setUsers(?User $users): static
+    public function setUser(?User $user): self
     {
-        $this->users = $users;
-
+        $this->user = $user;
         return $this;
     }
 
@@ -88,10 +91,9 @@ class Reservation
         return $this->room;
     }
 
-    public function setRoom(?Room $room): static
+    public function setRoom(?Room $room): self
     {
         $this->room = $room;
-
         return $this;
     }
 }
