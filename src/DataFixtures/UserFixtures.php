@@ -31,19 +31,18 @@ class UserFixtures extends Fixture
             ->setPassword($this->passwordHasher->hashPassword($admin, 'admin'));
         $manager->persist($admin);
         
-        // Create 50 users
+        $this->setReference(self::USER_REFERENCE, $admin);
+
+        // Create 50 regular users
         for ($i = 0; $i < 50; $i++) {
             $user = new User();
             $user
-                ->setEmail($faker->email)
+                ->setEmail($faker->unique()->safeEmail)
                 ->setRoles(['ROLE_USER'])
                 ->setPassword($this->passwordHasher->hashPassword($user, 'password'));
             $manager->persist($user);
         }
 
         $manager->flush();
-
-        // Save user reference for later use
-        $this->setReference(self::USER_REFERENCE, $user);
     }
 }

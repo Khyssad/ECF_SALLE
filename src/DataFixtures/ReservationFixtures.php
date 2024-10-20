@@ -17,33 +17,32 @@ class ReservationFixtures extends Fixture implements DependentFixtureInterface
     {
         $faker = Factory::create();
 
-        // Utiliser la référence existante
         $adminUser = $this->getReference(UserFixtures::USER_REFERENCE);
 
         // Create 50 reservations for the admin user
         for ($i = 0; $i < 50; $i++) {
             $reservation = new Reservation();
-            $startDate = new \DateTimeImmutable('-1 months');
+            $startDate = new \DateTimeImmutable($faker->dateTimeBetween('-1 month', '+1 month')->format('Y-m-d H:i:s'));
             $reservation
                 ->setStartDate($startDate)
-                ->setEndDate($startDate->modify('+1 week'))
-                ->setStatus('pending')
-                ->setUsers($adminUser)
+                ->setEndDate($startDate->modify('+' . $faker->numberBetween(1, 5) . ' hours'))
+                ->setStatus($faker->randomElement([Reservation::STATUS_PRE_RESERVED, Reservation::STATUS_CONFIRMED, Reservation::STATUS_CANCELLED]))
+                ->setUser($adminUser)
                 ->setRoom($this->getReference(RoomFixtures::ROOM_REFERENCE));
             $manager->persist($reservation);
         }
 
-        // Create 50 reservations for other users
+        // Create reservations for other users
         $otherUsers = $manager->getRepository(User::class)->findAll();
         foreach ($otherUsers as $user) {
             for ($i = 0; $i < 5; $i++) {
                 $reservation = new Reservation();
-                $startDate = new \DateTimeImmutable('-1 months');
+                $startDate = new \DateTimeImmutable($faker->dateTimeBetween('-1 month', '+1 month')->format('Y-m-d H:i:s'));
                 $reservation
                     ->setStartDate($startDate)
-                    ->setEndDate($startDate->modify('+1 week'))
-                    ->setStatus('pending')
-                    ->setUsers($user)
+                    ->setEndDate($startDate->modify('+' . $faker->numberBetween(1, 5) . ' hours'))
+                    ->setStatus($faker->randomElement([Reservation::STATUS_PRE_RESERVED, Reservation::STATUS_CONFIRMED, Reservation::STATUS_CANCELLED]))
+                    ->setUser($user)
                     ->setRoom($this->getReference(RoomFixtures::ROOM_REFERENCE));
                 $manager->persist($reservation);
             }
