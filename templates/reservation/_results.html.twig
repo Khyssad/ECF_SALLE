@@ -1,0 +1,39 @@
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Status</th>
+            <th>Room</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for reservation in reservations %}
+        <tr class="{{ reservation.status == 'confirmed' ? 'table-success' : (reservation.status == 'pre_reserved' ? 'table-warning' : '') }}">
+            <td>{{ reservation.id }}</td>
+            <td>{{ reservation.startDate|date('Y-m-d H:i') }}</td>
+            <td>{{ reservation.endDate|date('Y-m-d H:i') }}</td>
+            <td>{{ reservation.status }}</td>
+            <td>{{ reservation.room.name }}</td>
+            <td>
+                <a href="{{ path('app_reservation_show', {'id': reservation.id}) }}" class="btn btn-sm btn-info">View</a>
+                {% if is_granted('EDIT', reservation) %}
+                    <a href="{{ path('app_reservation_edit', {'id': reservation.id}) }}" class="btn btn-sm btn-warning">Edit</a>
+                {% endif %}
+                {% if is_granted('CANCEL', reservation) %}
+                    <form method="post" action="{{ path('app_reservation_delete', {'id': reservation.id}) }}" style="display: inline-block">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reservation.id) }}">
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this reservation?')">Delete</button>
+                    </form>
+                {% endif %}
+            </td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="6">No reservations found</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

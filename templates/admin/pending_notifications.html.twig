@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Pending Reservations{% endblock %}
+
+{% block body %}
+    <h1 class="text-3xl font-bold mb-6">Pending Reservations</h1>
+
+    <table class="min-w-full bg-white">
+        <thead>
+            <tr>
+                <th class="py-2 px-4 border-b">Room</th>
+                <th class="py-2 px-4 border-b">Start Date</th>
+                <th class="py-2 px-4 border-b">End Date</th>
+                <th class="py-2 px-4 border-b">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for reservation in pending_reservations %}
+            <tr>
+                <td class="py-2 px-4 border-b">{{ reservation.room.name }}</td>
+                <td class="py-2 px-4 border-b">{{ reservation.startDate|date('Y-m-d H:i') }}</td>
+                <td class="py-2 px-4 border-b">{{ reservation.endDate|date('Y-m-d H:i') }}</td>
+                <td class="py-2 px-4 border-b">
+                    <form method="post" action="{{ path('admin_confirm_reservation', {'id': reservation.id}) }}" style="display: inline;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('confirm' ~ reservation.id) }}">
+                        <button type="submit" class="text-green-600 hover:underline">Confirm</button>
+                    </form>
+                    <form method="post" action="{{ path('admin_reject_reservation', {'id': reservation.id}) }}" style="display: inline;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('reject' ~ reservation.id) }}">
+                        <button type="submit" class="text-red-600 hover:underline ml-2">Reject</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4" class="py-2 px-4 border-b text-center">No pending reservations found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

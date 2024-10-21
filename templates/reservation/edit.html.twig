@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Reservation{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1>
+            Edit Reservation
+            <span class="badge {{ reservation.status == 'confirmed' ? 'bg-success' : (reservation.status == 'pre_reserved' ? 'bg-warning text-dark' : 'bg-secondary') }}">
+                {{ reservation.status == 'confirmed' ? 'Confirmed' : (reservation.status == 'pre_reserved' ? 'Pre-reservation' : reservation.status) }}
+            </span>
+        </h1>
+
+        {{ include('reservation/_form.html.twig', {'button_label': 'Update'}) }}
+
+        <a href="{{ path('app_reservation_index') }}" class="btn btn-secondary mt-3">Back to list</a>
+
+        {{ include('reservation/_delete_form.html.twig') }}
+    </div>
+{% endblock %}

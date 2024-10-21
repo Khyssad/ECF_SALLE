@@ -1,14 +1,34 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Nouvelle Salle{% endblock %}
+{% block title %}New Room{% endblock %}
 
 {% block body %}
-    <h1>Créer une nouvelle salle</h1>
+    <h1 class="text-3xl font-bold mb-6">Create new room</h1>
 
-    {{ form_start(form) }}
-        {{ form_widget(form) }}
-        <button class="btn">{{ button_label|default('Enregistrer') }}</button>
+    {{ form_start(form, {'attr': {'class': 'bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4'}}) }}
+        <div class="mb-4">
+            {{ form_label(form.name, 'Name', {'label_attr': {'class': 'block text-gray-700 text-sm font-bold mb-2'}}) }}
+            {{ form_widget(form.name, {'attr': {'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'}}) }}
+        </div>
+        <div class="mb-4">
+            {{ form_label(form.capacity, 'Capacity', {'label_attr': {'class': 'block text-gray-700 text-sm font-bold mb-2'}}) }}
+            {{ form_widget(form.capacity, {'attr': {'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'}}) }}
+        </div>
+        <div class="mb-4">
+            {{ form_label(form.equipment, 'Equipment', {'label_attr': {'class': 'block text-gray-700 text-sm font-bold mb-2'}}) }}
+            {{ form_widget(form.equipment, {'attr': {'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'}}) }}
+        </div>
+        <div class="mb-6">
+            {{ form_label(form.ergonomics, 'Ergonomics', {'label_attr': {'class': 'block text-gray-700 text-sm font-bold mb-2'}}) }}
+            {{ form_widget(form.ergonomics, {'attr': {'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'}}) }}
+        </div>
+        <div class="flex items-center justify-between">
+            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                Create Room
+            </button>
+            <a class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800" href="{{ path('app_room_index') }}">
+                Back to list
+            </a>
+        </div>
     {{ form_end(form) }}
-
-    <a href="{{ path('room_index') }}">Retour à la liste</a>
 {% endblock %}
