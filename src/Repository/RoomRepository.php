@@ -22,22 +22,22 @@ class RoomRepository extends ServiceEntityRepository
                ->setParameter('name', '%' . $criteria['name'] . '%');
         }
 
-        if (!empty($criteria['minCapacity'])) {
-            $qb->andWhere('r.capacity >= :minCapacity')
-               ->setParameter('minCapacity', $criteria['minCapacity']);
+        if (!empty($criteria['capacity'])) {
+            $qb->andWhere('r.capacity >= :capacity')
+               ->setParameter('capacity', $criteria['capacity']);
         }
 
         if (!empty($criteria['equipment'])) {
             foreach ($criteria['equipment'] as $equipment) {
-                $qb->andWhere('r.equipment LIKE :' . $equipment)
-                   ->setParameter($equipment, '%' . $equipment . '%');
+                $qb->andWhere('JSON_CONTAINS(r.equipment, :equipment) = 1')
+                   ->setParameter('equipment', '"' . $equipment . '"');
             }
         }
 
         if (!empty($criteria['ergonomics'])) {
             foreach ($criteria['ergonomics'] as $ergonomic) {
-                $qb->andWhere('r.ergonomics LIKE :' . $ergonomic)
-                   ->setParameter($ergonomic, '%' . $ergonomic . '%');
+                $qb->andWhere('JSON_CONTAINS(r.ergonomics, :ergonomic) = 1')
+                   ->setParameter('ergonomic', '"' . $ergonomic . '"');
             }
         }
 

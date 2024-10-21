@@ -19,7 +19,7 @@
         </thead>
         <tbody>
         {% for reservation in reservations %}
-            <tr class="{{ reservation.status == 'confirmed' ? 'table-success' : (reservation.status == 'pre_reserved' ? 'table-warning' : '') }}">
+            <tr class="{{ reservation.status == 'confirmed' ? 'table-success' : (reservation.status == 'pending' ? 'table-warning' : '') }}">
                 <td>{{ reservation.id }}</td>
                 <td>{{ reservation.startDate|date('Y-m-d H:i') }}</td>
                 <td>{{ reservation.endDate|date('Y-m-d H:i') }}</td>
@@ -29,7 +29,7 @@
                 <td>
                     <a href="{{ path('admin_reservation_show', {'id': reservation.id}) }}" class="btn btn-sm btn-info">Voir</a>
                     <a href="{{ path('admin_reservation_edit', {'id': reservation.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
-                    {% if reservation.status == 'pre_reserved' %}
+                    {% if reservation.status == 'pending' %}
                         <form method="post" action="{{ path('admin_reservation_validate', {'id': reservation.id}) }}" style="display: inline;">
                             <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ reservation.id) }}">
                             <button class="btn btn-sm btn-success">Valider</button>

@@ -27,31 +27,36 @@ class NotificationService
     public function notifyAdminsOfPendingReservations()
     {
         $pendingReservations = $this->reservationRepository->findPendingReservations();
+        $upcomingReservations = $this->reservationRepository->findUpcomingReservations();
 
         if (count($pendingReservations) > 0) {
-            $this->sendEmailNotification($pendingReservations);
-            $this->createInAppNotification($pendingReservations);
+            $this->sendEmailNotification($pendingReservations, 'Réservations en attente');
+            $this->createInAppNotification($pendingReservations, 'pending_reservations');
+        }
+
+        if (count($upcomingReservations) > 0) {
+            $this->sendEmailNotification($upcomingReservations, 'Réservations à venir non traitées');
+            $this->createInAppNotification($upcomingReservations, 'upcoming_reservations');
         }
     }
 
-    private function sendEmailNotification(array $pendingReservations)
+    private function sendEmailNotification(array $reservations, string $subject)
     {
-        $emailContent = $this->generateEmailContent($pendingReservations);
+        $emailContent = $this->generateEmailContent($reservations, $subject);
 
         $email = (new Email())
             ->from('noreply@roomreservation.com')
             ->to('admin@example.com')
-            ->subject('Pending Reservations Notification')
+            ->subject($subject)
             ->html($emailContent);
 
         $this->mailer->send($email);
     }
-
-    private function createInAppNotification(array $pendingReservations)
+    private function createInAppNotification(array $reservations, string $type)
     {
         $notification = new AdminNotification();
-        $notification->setType('pending_reservations');
-        $notification->setContent('There are ' . count($pendingReservations) . ' pending reservations that need attention.');
+        $notification->setType($type);
+        $notification->setContent('Il y a ' . count($reservations) . ' réservations qui nécessitent votre attention.');
         $notification->setCreatedAt(new \DateTime());
 
         $this->entityManager->persist($notification);
