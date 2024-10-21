@@ -4,24 +4,44 @@ services:
       context: .  # Le contexte de construction est le répertoire actuel
       dockerfile: Dockerfile  # Assurez-vous que le fichier s'appelle Dockerfile
     image: php:8.3-apache
+    container_name: web
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+      - ./docker/apache/000-default.conf:/etc/apache2/sites-available/000-default.conf
     ports:
       - "8000:8000" # Redirection du port 8000 du conteneur vers le port 8000 de votre machine locale 
     depends_on:
       - database # Attendre que la base de données soit prête avant de démarrer l'application
+    environment:
+      DATABASE_URL: mysql://root:supersaiyan@database:3307/db_shy # URL de la base de données
+    networks:
+      - app_network
+    restart: always
 
   database:
     image: mysql:8.0
+    container_name: database
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-supersaiyan}
       MYSQL_DATABASE: ${MYSQL_DB:-db_shy}
+    ports:
+      - "3307:3306"
     volumes:
       - database_data:/var/lib/mysql/data:rw
+    networks:
+      - app_network
+    restart: always
 
   mailer:
     image: axllent/mailpit
     ports:
       - "1025:1025"
       - "8025:8025"
+
+networks:
+  app_network:
+    driver: bridge
 
 volumes:
   database_data:

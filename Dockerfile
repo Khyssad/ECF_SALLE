@@ -7,9 +7,6 @@ RUN docker-php-ext-install pdo pdo_mysql
 # Copier le code source de l'application
 COPY . /var/www/html/
 
-# Configuration de l'Apache
-COPY ./apache-config.conf /etc/apache2/sites-available/000-default.conf
-
 # Activer le module rewrite d'Apache
 RUN a2enmod rewrite
 
