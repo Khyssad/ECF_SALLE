@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\AdminNotification;
 use App\Entity\Reservation;
 use App\Repository\ReservationRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -65,7 +66,7 @@ class NotificationService
         $content .= "<ul>";
 
         foreach ($pendingReservations as $reservation) {
-            $content .= "<li>Reservation ID: " . $reservation->getId() .
+            $content .= "<li>Reservation ID: " . $reservation->getId() . 
                         ", Start Date: " . $reservation->getStartDate()->format('Y-m-d H:i') .
                         ", Room: " . $reservation->getRoom()->getName() . "</li>";
         }
