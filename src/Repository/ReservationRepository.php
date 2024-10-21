@@ -13,22 +13,37 @@ class ReservationRepository extends ServiceEntityRepository
         parent::__construct($registry, Reservation::class);
     }
 
-    public function isRoomAvailable(int $roomId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): bool
+    public function findPendingReservations()
     {
-        $qb = $this->createQueryBuilder('r')
+        $fiveDaysFromNow = new \DateTime('+5 days');
+
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.status = :status')
+            ->andWhere('r.startDate <= :fiveDaysFromNow')
+            ->setParameter('status', Reservation::STATUS_PRE_RESERVED)
+            ->setParameter('fiveDaysFromNow', $fiveDaysFromNow)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findOldPendingReservations(\DateTimeImmutable $threshold)
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.status = :status')
+            ->andWhere('r.startDate <= :threshold')
+            ->setParameter('status', Reservation::STATUS_PRE_RESERVED)
+            ->setParameter('threshold', $threshold)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countByStatus(string $status): int
+    {
+        return $this->createQueryBuilder('r')
             ->select('COUNT(r.id)')
-            ->where('r.room = :roomId')
-            ->andWhere('r.status != :cancelledStatus')
-            ->andWhere(
-                '(r.startDate < :endDate AND r.endDate > :startDate)'
-            )
-            ->setParameter('roomId', $roomId)
-            ->setParameter('cancelledStatus', 'cancelled')
-            ->setParameter('startDate', $startDate)
-            ->setParameter('endDate', $endDate);
-
-        $count = $qb->getQuery()->getSingleScalarResult();
-
-        return $count == 0;
+            ->andWhere('r.status = :status')
+            ->setParameter('status', $status)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }
