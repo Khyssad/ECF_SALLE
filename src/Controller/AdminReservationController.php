@@ -17,7 +17,7 @@ class AdminReservationController extends AbstractController
     {
         $pendingReservations = $reservationRepository->findPendingReservations();
 
-        return $this->render('admin/pending_reservations.html.twig', [
+        return $this->render('admin_reservation/index.html.twig', [
             'pending_reservations' => $pendingReservations,
         ]);
     }
@@ -50,7 +50,7 @@ class AdminReservationController extends AbstractController
         $threshold = new \DateTimeImmutable('-2 days');
         $oldPendingReservations = $reservationRepository->findOldPendingReservations($threshold);
 
-        return $this->render('admin/reservation_notifications.html.twig', [
+        return $this->render('admin_notification/notifications.html.twig', [
             'old_pending_reservations' => $oldPendingReservations,
         ]);
     }

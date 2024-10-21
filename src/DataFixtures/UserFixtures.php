@@ -25,15 +25,12 @@ class UserFixtures extends Fixture
 
         // Create admin user
         $admin = new User();
-        $hashedPassword = $this->passwordHasher->hashPassword($admin, 'admin');
         $admin
             ->setEmail('admin@example.com')
             ->setRoles(['ROLE_ADMIN'])
-            ->setPassword($hashedPassword);
+            ->setPassword($this->passwordHasher->hashPassword($admin, 'admin'));
         $manager->persist($admin);
 
-        echo "Admin hashed password: " . $hashedPassword . "\n";
-        
         $this->setReference(self::USER_REFERENCE, $admin);
 
         // Create 50 regular users
