@@ -4,9 +4,10 @@ namespace App\Repository;
 
 use App\Entity\Room;
 use App\Entity\Reservation;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityManagerInterface;
+use DateTimeInterface;
 
 class ReservationRepository extends ServiceEntityRepository
 {
@@ -36,35 +37,34 @@ class ReservationRepository extends ServiceEntityRepository
         }
     }
 
-    public function findPendingReservations()
+    public function hasOverlappingReservations(Room $room, DateTimeInterface $startDate, DateTimeInterface $endDate): bool
     {
-        $fiveDaysFromNow = new \DateTime('+5 days');
+        $overlappingReservations = $this->createQueryBuilder('r')
+            ->andWhere('r.room = :room')
+            ->andWhere('r.status != :cancelled')
+            ->andWhere('r.startDate < :endDate')
+            ->andWhere('r.endDate > :startDate')
+            ->setParameter('room', $room)
+            ->setParameter('cancelled', Reservation::STATUS_CANCELLED)
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->getQuery()
+            ->getResult();
 
+        return count($overlappingReservations) > 0;
+    }
+
+    public function findPendingReservationsBeforeDate(DateTimeInterface $date)
+    {
         return $this->createQueryBuilder('r')
             ->andWhere('r.status = :status')
-            ->andWhere('r.startDate <= :fiveDaysFromNow')
+            ->andWhere('r.startDate <= :date')
             ->setParameter('status', Reservation::STATUS_PRE_RESERVED)
-            ->setParameter('fiveDaysFromNow', $fiveDaysFromNow)
+            ->setParameter('date', $date)
+            ->orderBy('r.startDate', 'ASC')
             ->getQuery()
             ->getResult();
     }
-
-    public function findUpcomingReservations()
-    {
-        $fiveDaysFromNow = new \DateTime('+5 days');
-        $now = new \DateTime();
-
-        return $this->createQueryBuilder('r')
-            ->andWhere('r.status = :status')
-            ->andWhere('r.startDate > :now')
-            ->andWhere('r.startDate <= :fiveDaysFromNow')
-            ->setParameter('status', Reservation::STATUS_PRE_RESERVED)
-            ->setParameter('now', $now)
-            ->setParameter('fiveDaysFromNow', $fiveDaysFromNow)
-            ->getQuery()
-            ->getResult();
-    }
-
 
     public function countByStatus(string $status): int
     {
@@ -76,29 +76,12 @@ class ReservationRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
-    public function isRoomAvailable($room, \DateTimeInterface $start, \DateTimeInterface $end): bool
-    {
-        $overlappingReservations = $this->createQueryBuilder('r')
-            ->andWhere('r.room = :room')
-            ->andWhere('r.status != :cancelledStatus')
-            ->andWhere('(r.startDate < :end AND r.endDate > :start)')
-            ->setParameter('room', $room)
-            ->setParameter('cancelledStatus', Reservation::STATUS_CANCELLED)
-            ->setParameter('start', $start)
-            ->setParameter('end', $end)
-            ->getQuery()
-            ->getResult();
-
-        return count($overlappingReservations) === 0;
-    }
-
-
-    public function findReservationsForRoom(Room $room, \DateTimeInterface $start, \DateTimeInterface $end)
+    public function findReservationsForRoom(Room $room, DateTimeInterface $start, DateTimeInterface $end)
     {
         return $this->createQueryBuilder('r')
             ->andWhere('r.room = :room')
-            ->andWhere('r.startDate < :end')
-            ->andWhere('r.endDate > :start')
+            ->andWhere('r.startDate <= :end')
+            ->andWhere('r.endDate >= :start')
             ->setParameter('room', $room)
             ->setParameter('start', $start)
             ->setParameter('end', $end)
@@ -106,4 +89,14 @@ class ReservationRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findUpcomingReservations()
+    {
+        $now = new \DateTime();
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.startDate > :now')
+            ->setParameter('now', $now)
+            ->orderBy('r.startDate', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }
