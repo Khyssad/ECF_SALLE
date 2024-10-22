@@ -3,7 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Reservation;
-use App\Repository\ReservationRepository;
+use App\Entity\AdminNotification;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
@@ -11,63 +11,58 @@ use Symfony\Component\Mime\Email;
 class NotificationService
 {
     private $mailer;
-    private $reservationRepository;
     private $entityManager;
 
     public function __construct(
         MailerInterface $mailer,
-        ReservationRepository $reservationRepository,
         EntityManagerInterface $entityManager
     ) {
         $this->mailer = $mailer;
-        $this->reservationRepository = $reservationRepository;
         $this->entityManager = $entityManager;
     }
 
-    public function notifyAdminsOfPendingReservations()
+    public function notifyAdminsOfPendingReservations(array $reservations): void
     {
-        $pendingReservations = $this->reservationRepository->findPendingReservations();
+        // Create in-app notification
+        $notification = new AdminNotification();
+        $notification->setType('pending_reservations');
+        $notification->setMessage(sprintf(
+            'Vous avez %d réservation(s) en attente qui nécessite(nt) votre attention.',
+            count($reservations)
+        ));
+        $notification->setCreatedAt(new \DateTimeImmutable());
 
-        if (count($pendingReservations) > 0) {
-            $this->sendEmailNotification($pendingReservations);
-            $this->createInAppNotification($pendingReservations);
-        }
+        $this->entityManager->persist($notification);
+        $this->entityManager->flush();
+
+        // Send email
+        $this->sendEmailNotification($reservations);
     }
 
-    private function sendEmailNotification(array $pendingReservations)
+    private function sendEmailNotification(array $reservations): void
     {
-        $emailContent = $this->generateEmailContent($pendingReservations);
-
         $email = (new Email())
             ->from('noreply@roomreservation.com')
-            ->to('admin@example.com')
-            ->subject('Pending Reservations Notification')
-            ->html($emailContent);
+            ->to('admin@example.com') // Configure this
+            ->subject('Réservations en attente de validation')
+            ->html($this->generateEmailContent($reservations));
 
         $this->mailer->send($email);
     }
 
-    private function createInAppNotification(array $pendingReservations)
+    private function generateEmailContent(array $reservations): string
     {
-        $notification = new AdminNotification();
-        $notification->setType('pending_reservations');
-        $notification->setContent('There are ' . count($pendingReservations) . ' pending reservations that need attention.');
-        $notification->setCreatedAt(new \DateTime());
-
-        $this->entityManager->persist($notification);
-        $this->entityManager->flush();
-    }
-
-    private function generateEmailContent(array $pendingReservations): string
-    {
-        $content = "<h1>Pending Reservations</h1>";
-        $content .= "<p>The following reservations need your attention:</p>";
+        $content = "<h1>Réservations en attente</h1>";
+        $content .= "<p>Les réservations suivantes nécessitent votre attention :</p>";
         $content .= "<ul>";
 
-        foreach ($pendingReservations as $reservation) {
-            $content .= "<li>Reservation ID: " . $reservation->getId() . 
-                        ", Start Date: " . $reservation->getStartDate()->format('Y-m-d H:i') .
-                        ", Room: " . $reservation->getRoom()->getName() . "</li>";
+        foreach ($reservations as $reservation) {
+            $content .= sprintf(
+                "<li>Salle: %s, Date: %s, Utilisateur: %s</li>",
+                $reservation->getRoom()->getName(),
+                $reservation->getStartDate()->format('Y-m-d H:i'),
+                $reservation->getUser()->getEmail()
+            );
         }
 
         $content .= "</ul>";
