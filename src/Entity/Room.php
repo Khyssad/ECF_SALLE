@@ -21,10 +21,10 @@ class Room
     #[ORM\Column]
     private ?int $capacity = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'json')]
     private array $equipment = [];
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'json')]
     private array $ergonomics = [];
 
     #[ORM\OneToMany(mappedBy: 'room', targetEntity: Reservation::class)]
@@ -48,7 +48,6 @@ class Room
     public function setName(string $name): self
     {
         $this->name = $name;
-
         return $this;
     }
 
@@ -60,7 +59,6 @@ class Room
     public function setCapacity(int $capacity): self
     {
         $this->capacity = $capacity;
-
         return $this;
     }
 
@@ -72,7 +70,6 @@ class Room
     public function setEquipment(array $equipment): self
     {
         $this->equipment = $equipment;
-
         return $this;
     }
 
@@ -84,7 +81,6 @@ class Room
     public function setErgonomics(array $ergonomics): self
     {
         $this->ergonomics = $ergonomics;
-
         return $this;
     }
 
@@ -102,19 +98,21 @@ class Room
             $this->reservations->add($reservation);
             $reservation->setRoom($this);
         }
-
         return $this;
     }
 
     public function removeReservation(Reservation $reservation): self
     {
         if ($this->reservations->removeElement($reservation)) {
-            // set the owning side to null (unless already changed)
             if ($reservation->getRoom() === $this) {
                 $reservation->setRoom(null);
             }
         }
-
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return $this->name ?? '';
     }
 }

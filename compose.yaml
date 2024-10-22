@@ -1,47 +1,36 @@
 services:
-  web:
+  app:
     build:
-      context: .  # Le contexte de construction est le répertoire actuel
-      dockerfile: Dockerfile  # Assurez-vous que le fichier s'appelle Dockerfile
-    image: php:8.3-apache
-    container_name: web
-    working_dir: /var/www/html
+      context: .
+      dockerfile: Dockerfile
+    container_name: shy_app
+    environment:
+      - SYMFONY_ENV=dev
     volumes:
       - .:/var/www/html
-      - ./docker/apache/000-default.conf:/etc/apache2/sites-available/000-default.conf
     ports:
-      - "8000:8000" # Redirection du port 8000 du conteneur vers le port 8000 de votre machine locale 
-    depends_on:
-      - database # Attendre que la base de données soit prête avant de démarrer l'application
-    environment:
-      DATABASE_URL: mysql://root:supersaiyan@database:3307/db_shy # URL de la base de données
+      - "8000:8000"
     networks:
-      - app_network
-    restart: always
+      - app-network
+    depends_on:
+      - database
 
   database:
     image: mysql:8.0
-    container_name: database
+    container_name: mysql_db
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-supersaiyan}
-      MYSQL_DATABASE: ${MYSQL_DB:-db_shy}
-    ports:
-      - "3307:3306"
+      MYSQL_ROOT_PASSWORD: supersaiyan
+      MYSQL_DATABASE: db_shy
     volumes:
-      - database_data:/var/lib/mysql/data:rw
+      - db_data:/var/lib/mysql
     networks:
-      - app_network
-    restart: always
-
-  mailer:
-    image: axllent/mailpit
+      - app-network
     ports:
-      - "1025:1025"
-      - "8025:8025"
+      - "3306:3306"  # Exposer MySQL pour des connexions externes si nécessaire
 
 networks:
-  app_network:
+  app-network:
     driver: bridge
 
 volumes:
-  database_data:
+  db_data:
