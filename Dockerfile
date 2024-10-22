@@ -1,9 +1,11 @@
 # Utiliser l'image PHP officielle avec Apache
-FROM php:8.3-apache
+FROM php:8.2-apache
 
-# Installer les extensions PHP nécessaires
+# Installer les dépendances nécessaires
 RUN apt-get update && apt-get install -y \
     libzip-dev \
+    unzip \
+    git \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
@@ -13,21 +15,20 @@ RUN apt-get update && apt-get install -y \
 # Installer Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Activer le module rewrite d'Apache
+RUN a2enmod rewrite
+
 # Définir le répertoire de travail
 WORKDIR /var/www/html
 
 # Copier le code source de l'application
 COPY . .
 
-# Installer les dépendances Symfony
-RUN composer install --no-interaction --optimize-autoloader
+# Installer les dépendances de Symfony
+RUN composer install
 
 # Exposer le port 80
 EXPOSE 80
 
-# Configurer le document root d'Apache
-RUN echo 'DocumentRoot /var/www/html/public' >> /etc/apache2/apache2.conf
-RUN a2enmod rewrite
-
-# Lancer Apache en premier plan
+# Assurer que Apache est en cours d'exécution
 CMD ["apache2-foreground"]

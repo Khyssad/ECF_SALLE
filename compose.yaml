@@ -1,25 +1,30 @@
 services:
-  web:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "8000:80"
     volumes:
       - .:/var/www/html
-    depends_on:
-      - database
-    environment:
-      - DATABASE_URL=mysql://user:password@database:3306/db_shy
+    networks:
+      - app-network
+    ports:
+      - "8000:8000"  # Mapper le port 8000 du conteneur au port 8000 de l'hôte
 
   database:
     image: mysql:8.0
-    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: supersaiyan
       MYSQL_DATABASE: db_shy
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
     volumes:
       - db_data:/var/lib/mysql
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   db_data:
