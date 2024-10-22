@@ -1,36 +1,25 @@
 services:
-  app:
+  web:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: shy_app
-    environment:
-      - SYMFONY_ENV=dev
+    ports:
+      - "8000:80"
     volumes:
       - .:/var/www/html
-    ports:
-      - "8000:8000"
-    networks:
-      - app-network
     depends_on:
       - database
+    environment:
+      - DATABASE_URL=mysql://user:password@database:3306/db_shy
 
   database:
     image: mysql:8.0
-    container_name: mysql_db
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: supersaiyan
       MYSQL_DATABASE: db_shy
     volumes:
       - db_data:/var/lib/mysql
-    networks:
-      - app-network
-    ports:
-      - "3306:3306"  # Exposer MySQL pour des connexions externes si nécessaire
-
-networks:
-  app-network:
-    driver: bridge
 
 volumes:
   db_data:
